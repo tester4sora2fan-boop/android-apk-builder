@@ -1,0 +1,166 @@
+{
+  "entities": {
+    "SaveSlot": {
+      "title": "SaveSlot",
+      "description": "Cloud RPG save slot containing hero stats, world position, progression skill tree nodes, inventory items, equipment, and defeated bosses.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID matching request.auth.uid."
+        },
+        "slotName": {
+          "type": "string",
+          "description": "Display label for the save slot."
+        },
+        "heroName": {
+          "type": "string",
+          "description": "Name of the player's royal bee hero."
+        },
+        "level": {
+          "type": "integer",
+          "description": "Current hero RPG level (1-99)."
+        },
+        "xp": {
+          "type": "integer",
+          "description": "Current experience points toward next level."
+        },
+        "xpToNext": {
+          "type": "integer",
+          "description": "Experience points required for next level."
+        },
+        "hp": {
+          "type": "integer",
+          "description": "Current health points."
+        },
+        "maxHp": {
+          "type": "integer",
+          "description": "Maximum health points."
+        },
+        "mp": {
+          "type": "integer",
+          "description": "Current honey magic points."
+        },
+        "maxMp": {
+          "type": "integer",
+          "description": "Maximum honey magic points."
+        },
+        "baseAtk": {
+          "type": "integer",
+          "description": "Base attack power before equipment."
+        },
+        "baseDef": {
+          "type": "integer",
+          "description": "Base defense before equipment."
+        },
+        "skillPoints": {
+          "type": "integer",
+          "description": "Unspent progression tree skill points."
+        },
+        "gold": {
+          "type": "integer",
+          "description": "Honey coins currency."
+        },
+        "posX": {
+          "type": "integer",
+          "description": "Current tile X coordinate on the world map."
+        },
+        "posY": {
+          "type": "integer",
+          "description": "Current tile Y coordinate on the world map."
+        },
+        "currentRegion": {
+          "type": "string",
+          "description": "ID of the current world region."
+        },
+        "equippedWeapon": {
+          "type": "string",
+          "description": "Item ID of the equipped weapon or empty string."
+        },
+        "equippedShield": {
+          "type": "string",
+          "description": "Item ID of the equipped shield or empty string."
+        },
+        "equippedCharm": {
+          "type": "string",
+          "description": "Item ID of the equipped charm or empty string."
+        },
+        "unlockedSkills": {
+          "type": "array",
+          "description": "List of unlocked progression tree skill node IDs."
+        },
+        "inventoryItems": {
+          "type": "array",
+          "description": "List of encoded itemId:quantity entries."
+        },
+        "defeatedBosses": {
+          "type": "array",
+          "description": "List of defeated boss or guardian IDs."
+        },
+        "openedChests": {
+          "type": "array",
+          "description": "List of opened treasure chest coordinates."
+        },
+        "discoveredRegions": {
+          "type": "array",
+          "description": "List of discovered world region IDs."
+        },
+        "enemiesDefeated": {
+          "type": "integer",
+          "description": "Total number of evil bees defeated."
+        },
+        "playTimeSeconds": {
+          "type": "integer",
+          "description": "Cumulative play time in seconds."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on creation (clients submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on update (clients submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "slotName",
+        "heroName",
+        "level",
+        "xp",
+        "xpToNext",
+        "hp",
+        "maxHp",
+        "mp",
+        "maxMp",
+        "baseAtk",
+        "baseDef",
+        "skillPoints",
+        "gold",
+        "posX",
+        "posY",
+        "currentRegion",
+        "equippedWeapon",
+        "equippedShield",
+        "equippedCharm",
+        "unlockedSkills",
+        "inventoryItems",
+        "defeatedBosses",
+        "openedChests",
+        "discoveredRegions",
+        "enemiesDefeated",
+        "playTimeSeconds",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/save_slots/{slotId}": {
+      "schema": { "$ref": "#/entities/SaveSlot" },
+      "description": "Per-user RPG cloud save slots for Bee Kingdom."
+    }
+  }
+}

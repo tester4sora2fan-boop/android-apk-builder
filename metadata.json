@@ -1,0 +1,6 @@
+{
+  "name": "Bee Kingdom",
+  "description": "A top-down pixel-art 2D RPG adventure in the Cool Bee Kingdom with turn-based combat, world-map exploration, character progression trees, inventory management, sound effects, and cloud save slots.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

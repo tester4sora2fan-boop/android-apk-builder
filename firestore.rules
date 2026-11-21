@@ -1,0 +1,120 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Reusable Hardened Helpers ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isStringList(listVal, maxLen) {
+      return listVal is list &&
+             listVal.size() <= maxLen &&
+             (listVal.size() == 0 || listVal[0] is string);
+    }
+
+    // --- Validation Blueprint for SaveSlot ---
+    function isValidSaveSlot(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.slotName is string && data.slotName.size() >= 1 && data.slotName.size() <= 60 &&
+             data.heroName is string && data.heroName.size() >= 1 && data.heroName.size() <= 40 &&
+             data.level is int && data.level >= 1 && data.level <= 99 &&
+             data.xp is int && data.xp >= 0 && data.xp <= 1000000 &&
+             data.xpToNext is int && data.xpToNext >= 1 && data.xpToNext <= 1000000 &&
+             data.hp is int && data.hp >= 0 && data.hp <= 9999 &&
+             data.maxHp is int && data.maxHp >= 1 && data.maxHp <= 9999 &&
+             data.mp is int && data.mp >= 0 && data.mp <= 9999 &&
+             data.maxMp is int && data.maxMp >= 1 && data.maxMp <= 9999 &&
+             data.baseAtk is int && data.baseAtk >= 1 && data.baseAtk <= 999 &&
+             data.baseDef is int && data.baseDef >= 0 && data.baseDef <= 999 &&
+             data.skillPoints is int && data.skillPoints >= 0 && data.skillPoints <= 99 &&
+             data.gold is int && data.gold >= 0 && data.gold <= 9999999 &&
+             data.posX is int && data.posX >= 0 && data.posX <= 100 &&
+             data.posY is int && data.posY >= 0 && data.posY <= 100 &&
+             data.currentRegion is string && data.currentRegion.size() >= 1 && data.currentRegion.size() <= 40 &&
+             data.equippedWeapon is string && data.equippedWeapon.size() <= 64 &&
+             data.equippedShield is string && data.equippedShield.size() <= 64 &&
+             data.equippedCharm is string && data.equippedCharm.size() <= 64 &&
+             isStringList(data.unlockedSkills, 25) &&
+             isStringList(data.inventoryItems, 60) &&
+             isStringList(data.defeatedBosses, 20) &&
+             isStringList(data.openedChests, 40) &&
+             isStringList(data.discoveredRegions, 10) &&
+             data.enemiesDefeated is int && data.enemiesDefeated >= 0 && data.enemiesDefeated <= 999999 &&
+             data.playTimeSeconds is int && data.playTimeSeconds >= 0 && data.playTimeSeconds <= 99999999;
+    }
+
+    // --- User-Scoped Save Slots ---
+    match /users/{userId}/save_slots/{slotId} {
+      allow list: if isSignedIn() && isOwner(userId);
+      allow get, delete: if isSignedIn() && isOwner(userId) && isValidId(slotId);
+
+      allow create: if isSignedIn() &&
+                       isOwner(userId) &&
+                       isValidId(slotId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'slotName', 'heroName', 'level', 'xp', 'xpToNext',
+                         'hp', 'maxHp', 'mp', 'maxMp', 'baseAtk', 'baseDef',
+                         'skillPoints', 'gold', 'posX', 'posY', 'currentRegion',
+                         'equippedWeapon', 'equippedShield', 'equippedCharm',
+                         'unlockedSkills', 'inventoryItems', 'defeatedBosses',
+                         'openedChests', 'discoveredRegions', 'enemiesDefeated',
+                         'playTimeSeconds', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'slotName', 'heroName', 'level', 'xp', 'xpToNext',
+                         'hp', 'maxHp', 'mp', 'maxMp', 'baseAtk', 'baseDef',
+                         'skillPoints', 'gold', 'posX', 'posY', 'currentRegion',
+                         'equippedWeapon', 'equippedShield', 'equippedCharm',
+                         'unlockedSkills', 'inventoryItems', 'defeatedBosses',
+                         'openedChests', 'discoveredRegions', 'enemiesDefeated',
+                         'playTimeSeconds', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidSaveSlot(incoming(), userId);
+
+      allow update: if isSignedIn() &&
+                       isOwner(userId) &&
+                       isValidId(slotId) &&
+                       isValidSaveSlot(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'slotName', 'heroName', 'level', 'xp', 'xpToNext',
+                         'hp', 'maxHp', 'mp', 'maxMp', 'baseAtk', 'baseDef',
+                         'skillPoints', 'gold', 'posX', 'posY', 'currentRegion',
+                         'equippedWeapon', 'equippedShield', 'equippedCharm',
+                         'unlockedSkills', 'inventoryItems', 'defeatedBosses',
+                         'openedChests', 'discoveredRegions', 'enemiesDefeated',
+                         'playTimeSeconds', 'updatedAt'
+                       ]);
+    }
+  }
+}
